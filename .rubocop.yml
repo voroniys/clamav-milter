@@ -1,0 +1,6 @@
+AllCops:
+  Exclude:
+    - vendor/**/*
+
+LineLength:
+  Enabled: false
