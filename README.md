@@ -1,7 +1,7 @@
 clamav-milter Cookbook
 ======================
 [![Build Status](https://travis-ci.org/voroniys/clamav-milter.svg?branch=master)](https://travis-ci.org/voroniys/clamav-milter)
-[![Cookbook Version](https://img.shields.io/cookbook/v/clamav-milter.svg)](https://supermarket.chef.io/voroniys/clamav-milter)
+[![Cookbook Version](https://img.shields.io/cookbook/v/clamav-milter.svg)](https://supermarket.chef.io/cookbooks/clamav-milter)
 
 The cookbook is to install and configure 3 components of Clamav antivirus mail checker - clamav-milter. In order to make it working it install Clamav daemon and Clamav virus database updater as well.
 
