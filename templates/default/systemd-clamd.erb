@@ -1,0 +1,12 @@
+[Unit]
+Description = Daemon for the Clam Antivirus scanner
+After = syslog.target nss-lookup.target network.target
+Before = clamav-milter.service
+
+[Service]
+Type = simple
+ExecStart = /usr/sbin/clamd -c <%= node['clamav']['confdir'] %>/clamd.conf --nofork=yes
+Restart = on-failure
+
+[Install]
+WantedBy = multi-user.target

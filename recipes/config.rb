@@ -18,6 +18,14 @@
 # limitations under the License.
 #
 confdir = node['clamav']['confdir']
+if node['platform_family'] == 'rhel' && node['platform_version'].to_i >= 7
+  milter_confdir = '/etc/mail'
+  directory milter_confdir do
+    mode 00750
+  end
+else
+  milter_confdir = confdir
+end
 # ensure directories, but do not tuch /etc (CentOS6)
 [confdir, node['clamav']['rundir']].each do |dir|
   directory dir do
@@ -51,7 +59,7 @@ template "#{confdir}/freshclam.conf" do
   notifies :restart, "service[#{node['clamav']['service']['freshclam']}]"
 end if node['platform_family'] == 'debian'
 
-template "#{confdir}/clamav-milter.conf" do
+template "#{milter_confdir}/clamav-milter.conf" do
   owner node['clamav']['user']
   group node['clamav']['group']
   source 'conf.erb'
