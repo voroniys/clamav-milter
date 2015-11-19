@@ -25,16 +25,18 @@ when 'rhel'
     default['clamav']['confdir'] = '/etc/clamd.d'
   else
     default['clamav']['confdir'] = '/etc'
+    default['clamav']['user'] = 'clam'
+    default['clamav']['group'] = 'clam'
   end
 when 'debian'
   default['clamav']['service']['clamd'] = 'clamav-daemon'
   default['clamav']['service']['freshclam'] = 'clamav-freshclam'
   default['clamav']['service']['milter'] = 'clamav-milter'
   default['clamav']['confdir'] = '/etc/clamav'
+  default['clamav']['user'] = 'clamav'
+  default['clamav']['group'] = 'clamav'
 end
 # General settings
-default['clamav']['user'] = 'clamav'
-default['clamav']['group'] = 'clamav'
 default['clamav']['rundir'] = '/var/run/clamav'
 default['clamav']['config']['MaxFileSize'] = '25M'
 
