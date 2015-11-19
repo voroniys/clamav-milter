@@ -20,5 +20,5 @@
 #
 
 include_recipe "#{cookbook_name}::install"
-include_recipe "#{cookbook_name}::config"
 include_recipe "#{cookbook_name}::services"
+include_recipe "#{cookbook_name}::config"
