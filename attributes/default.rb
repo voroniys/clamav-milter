@@ -83,8 +83,8 @@ default['clamav']['config']['milter']['MilterSocketMode'] = '666'
 default['clamav']['config']['milter']['ReadTimeout'] = 120
 default['clamav']['config']['milter']['Foreground'] = 'false'
 if node['platform_family'] == 'rhel' && node['platform_version'].to_i >= 7
-  default['clamav']['config']['milter']['PidFile'] = "/var/run/clamav-milter/clamav-milter.pid"
-  default['clamav']['config']['milter']['MilterSocket'] = "/var/run/clamav-milter/clamav-milter.ctl"
+  default['clamav']['config']['milter']['PidFile'] = '/var/run/clamav-milter/clamav-milter.pid'
+  default['clamav']['config']['milter']['MilterSocket'] = '/var/run/clamav-milter/clamav-milter.ctl'
   default['clamav']['config']['milter']['User'] = 'clamilt'
   default['clamav']['config']['milter']['MilterSocketGroup'] = 'clamilt'
 else

@@ -21,7 +21,7 @@ describe 'milter-test::default' do
     # {{{ install
     it 'installs the platform related packages' do
       expect(chef_run).to install_package(packages)
-      expect(chef_run).to install_package(repo_package) if !repo_package.nil?
+      expect(chef_run).to install_package(repo_package) unless repo_package.nil?
     end
     # }}}
 
@@ -83,7 +83,7 @@ describe 'milter-test::default' do
       expect(chef_run).to render_file("#{confdir}/scan.conf").with_content(/^MaxFileSize +33M/)
     end
     it 'renders file freshclam.conf with LocalSocket set to /test/run/clamav/test.ctl' do
-      expect(chef_run).to render_file("/etc/freshclam.conf").with_content(%r{^PidFile +/test/run/clamav/test.pid})
+      expect(chef_run).to render_file('/etc/freshclam.conf').with_content(%r{^PidFile +/test/run/clamav/test.pid})
     end
     it 'renders file clamav-milter.conf with LocalSocket set to /test/run/clamav/test.ctl' do
       expect(chef_run).to render_file("#{milter_confdir}/clamav-milter.conf").with_content(%r{^MilterSocket +/var/run/clamav-milter/test-milter.ctl})
@@ -126,7 +126,7 @@ describe 'milter-test::default' do
       user: nil,
       group: nil,
       services: ['clamd@scan', 'clamav-milter'],
-    }
+    },
   }.each do |k, v|
     context "On #{k} #{v[:version]}" do
       let(:platform) { { platform: v[:platform], version: v[:version] } }

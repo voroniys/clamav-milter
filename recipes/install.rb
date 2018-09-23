@@ -20,16 +20,17 @@
 case node['platform_family']
 when 'rhel'
   package 'epel-release'
-  if node['platform_version'].to_i >= 7
-    packages = %w(clamav clamav-server clamav-update clamav-milter-systemd clamav-milter)
-  else
-    packages = %w(clamav clamav-db clamd clamav-milter)
-  end
+  packages =
+    if node['platform_version'].to_i >= 7
+      %w(clamav clamav-server clamav-update clamav-milter-systemd clamav-milter)
+    else
+      %w(clamav clamav-db clamd clamav-milter)
+    end
 when 'debian'
   packages = %w(clamav clamav-daemon clamav-milter)
 else
-  fail(Chef::Exceptions::UnsupportedAction,
-       "Platform #{node['platform']} not supported")
+  raise(Chef::Exceptions::UnsupportedAction,
+       "Platform #{node['platform_family']} not supported")
 end
 
 package packages
