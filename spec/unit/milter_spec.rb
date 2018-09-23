@@ -10,8 +10,8 @@ describe 'milter-test::default' do
   let(:group) { nil }
   let(:runner) do
     ChefSpec::SoloRunner.new(platform) do |node|
-      node.set['clamav']['config']['MaxFileSize'] = '33M'
-      node.set['clamav']['rundir'] = '/test/run/clamav'
+      node.normal['clamav']['config']['MaxFileSize'] = '33M'
+      node.normal['clamav']['rundir'] = '/test/run/clamav'
     end
   end
   let(:chef_run) { runner.converge(described_recipe) }
