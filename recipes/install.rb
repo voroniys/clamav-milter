@@ -19,10 +19,11 @@
 #
 case node['platform_family']
 when 'rhel'
+  package 'epel-release'
   if node['platform_version'].to_i >= 7
-    packages = %w(epel-release clamav clamav-server clamav-update clamav-milter-systemd clamav-milter)
+    packages = %w(clamav clamav-server clamav-update clamav-milter-systemd clamav-milter)
   else
-    packages = %w(epel-release clamav clamav-db clamd clamav-milter)
+    packages = %w(clamav clamav-db clamd clamav-milter)
   end
 when 'debian'
   packages = %w(clamav clamav-daemon clamav-milter)
@@ -31,22 +32,12 @@ else
        "Platform #{node['platform']} not supported")
 end
 
-packages.each do |pkg|
-  package pkg
-end
+package packages
 
 if node['platform_family'] == 'rhel' && node['platform_version'].to_i >= 7
-  execute 'update-clamd-service' do
-    command '/usr/bin/systemctl preset clamd.service'
-    action :nothing
-  end
-
-  template '/usr/lib/systemd/system/clamd.service' do
-    owner 'root'
-    group 'root'
-    source 'systemd-clamd.erb'
-    mode '0644'
-    action :create
-    notifies :run, 'execute[update-clamd-service]', :immediately
+  execute 'update-clamd-db' do
+    command '/usr/bin/freshclam'
+    not_if { ::File.exist?("#{node['clamav']['config']['clamd']['DatabaseDirectory']}/main.cvd") }
+    action :run
   end
 end

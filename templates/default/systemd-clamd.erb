@@ -4,8 +4,10 @@ After = syslog.target nss-lookup.target network.target
 Before = clamav-milter.service
 
 [Service]
-Type = simple
-ExecStart = /usr/sbin/clamd -c <%= node['clamav']['confdir'] %>/clamd.conf --nofork=yes
+Type = forking
+ExecStartPre = -/usr/bin/freshclam
+ExecStart = /usr/sbin/clamd -c <%= node['clamav']['confdir'] %>/clamd.conf
+PIDFile = /var/run/clamav/clamd.pid
 Restart = on-failure
 
 [Install]

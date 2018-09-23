@@ -19,12 +19,18 @@
 #
 confdir = node['clamav']['confdir']
 if node['platform_family'] == 'rhel' && node['platform_version'].to_i >= 7
+  conffile = 'scan.conf'
   milter_confdir = '/etc/mail'
+  freshclam_confdir = '/etc'
   directory milter_confdir do
+    owner 'clamilt'
+    group 'clamilt'
     mode 00750
   end
 else
   milter_confdir = confdir
+  freshclam_confdir = confdir
+  conffile = 'clamd.conf'
 end
 # ensure directories, but do not tuch /etc (CentOS6)
 [confdir, node['clamav']['rundir']].each do |dir|
@@ -35,7 +41,7 @@ end
   end if dir != '/etc'
 end
 
-template "#{confdir}/clamd.conf" do
+template "#{confdir}/#{conffile}" do
   owner node['clamav']['user']
   group node['clamav']['group']
   source 'conf.erb'
@@ -47,7 +53,7 @@ template "#{confdir}/clamd.conf" do
   notifies :restart, "service[#{node['clamav']['service']['clamd']}]"
 end
 
-template "#{confdir}/freshclam.conf" do
+template "#{freshclam_confdir}/freshclam.conf" do
   owner node['clamav']['user']
   group node['clamav']['group']
   source 'conf.erb'
@@ -56,8 +62,8 @@ template "#{confdir}/freshclam.conf" do
   variables(
     config: node['clamav']['config']['freshclam']
   )
-  notifies :restart, "service[#{node['clamav']['service']['freshclam']}]"
-end if node['platform_family'] == 'debian'
+  notifies :restart, "service[#{node['clamav']['service']['freshclam']}]" if node['clamav']['service'].key?('freshclam')
+end
 
 template "#{milter_confdir}/clamav-milter.conf" do
   owner node['clamav']['user']

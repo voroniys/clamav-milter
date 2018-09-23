@@ -5,6 +5,7 @@ describe 'milter-test::default' do
   let(:services) { {} }
   let(:packages) { {} }
   let(:confdir) { nil }
+  let(:repo_package) { nil }
   let(:milter_confdir) { nil }
   let(:user) { nil }
   let(:group) { nil }
@@ -19,9 +20,8 @@ describe 'milter-test::default' do
   shared_examples_for 'any platform' do
     # {{{ install
     it 'installs the platform related packages' do
-      packages.each do |p|
-        expect(chef_run).to install_package(p)
-      end
+      expect(chef_run).to install_package(packages)
+      expect(chef_run).to install_package(repo_package) if !repo_package.nil?
     end
     # }}}
 
@@ -37,18 +37,6 @@ describe 'milter-test::default' do
         group: group,
         mode: 0750
       ) if confdir != '/etc'
-      expect(chef_run).to create_directory(milter_confdir).with(
-        owner: user,
-        group: group,
-        mode: 0750
-      ) if confdir != '/etc'
-    end
-    it 'renders file clamd.conf with LocalSocket set to /test/run/clamav/test.ctl' do
-      expect(chef_run).to render_file("#{confdir}/clamd.conf").with_content(%r{^LocalSocket +/test/run/clamav/test.ctl})
-      expect(chef_run).to render_file("#{confdir}/clamd.conf").with_content(/^MaxFileSize +33M/)
-    end
-    it 'renders file clamav-milter.conf with LocalSocket set to /test/run/clamav/test.ctl' do
-      expect(chef_run).to render_file("#{milter_confdir}/clamav-milter.conf").with_content(%r{^MilterSocket +/test/run/clamav/test-milter.ctl})
     end
     # }}}
 
@@ -62,51 +50,82 @@ describe 'milter-test::default' do
     # }}}
   end
 
-  shared_examples_for 'platform with freshclam' do
+  shared_examples_for 'normal platform' do
+    it 'creates configured directores' do
+      expect(chef_run).to create_directory(milter_confdir).with(
+        owner: user,
+        group: group,
+        mode: 0750
+      ) if confdir != '/etc'
+    end
+    it 'renders file clamd.conf with LocalSocket set to /test/run/clamav/test.ctl' do
+      expect(chef_run).to render_file("#{confdir}/clamd.conf").with_content(%r{^LocalSocket +/test/run/clamav/test.ctl})
+      expect(chef_run).to render_file("#{confdir}/clamd.conf").with_content(/^MaxFileSize +33M/)
+    end
     it 'renders file freshclam.conf with LocalSocket set to /test/run/clamav/test.ctl' do
       expect(chef_run).to render_file("#{confdir}/freshclam.conf").with_content(%r{^PidFile +/test/run/clamav/test.pid})
     end
+    it 'renders file clamav-milter.conf with LocalSocket set to /test/run/clamav/test.ctl' do
+      expect(chef_run).to render_file("#{milter_confdir}/clamav-milter.conf").with_content(%r{^MilterSocket +/test/run/clamav/test-milter.ctl})
+    end
   end
 
-  shared_examples_for 'platform with systemd' do
-    it 'renders file clamd.service' do
-      expect(chef_run).to render_file('/usr/lib/systemd/system/clamd.service')
+  shared_examples_for 'centos7 platform' do
+    it 'creates configured directores' do
+      expect(chef_run).to create_directory(milter_confdir).with(
+        owner: 'clamilt',
+        group: 'clamilt',
+        mode: 0750
+      )
     end
-    it 'execute systemctl' do
-      expect(chef_run).to_not run_execute('update-clamd-service')
+    it 'renders file scan.conf with LocalSocket set to /test/run/clamav/test.ctl' do
+      expect(chef_run).to render_file("#{confdir}/scan.conf").with_content(%r{^LocalSocket +/test/run/clamav/test.ctl})
+      expect(chef_run).to render_file("#{confdir}/scan.conf").with_content(/^MaxFileSize +33M/)
+    end
+    it 'renders file freshclam.conf with LocalSocket set to /test/run/clamav/test.ctl' do
+      expect(chef_run).to render_file("/etc/freshclam.conf").with_content(%r{^PidFile +/test/run/clamav/test.pid})
+    end
+    it 'renders file clamav-milter.conf with LocalSocket set to /test/run/clamav/test.ctl' do
+      expect(chef_run).to render_file("#{milter_confdir}/clamav-milter.conf").with_content(%r{^MilterSocket +/var/run/clamav-milter/test-milter.ctl})
+    end
+    it 'execute db update' do
+      expect(chef_run).to run_execute('update-clamd-db')
     end
   end
 
   {
     Ubuntu: {
       platform: 'ubuntu',
-      version: '14.04',
+      version: '16.04',
       packages: ['clamav', 'clamav-daemon', 'clamav-milter'],
       confdir: '/etc/clamav',
       milter_confdir: '/etc/clamav',
       user: 'clamav',
       group: 'clamav',
-      services: ['clamav-daemon', 'clamav-freshclam', 'clamav-milter']
+      services: ['clamav-daemon', 'clamav-freshclam', 'clamav-milter'],
+      repo_package: nil,
     },
     CentOS6: {
       platform: 'centos',
-      version: '6.5',
-      packages: ['epel-release', 'clamav', 'clamav-db', 'clamd', 'clamav-milter'],
+      version: '6.9',
+      packages: ['clamav', 'clamav-db', 'clamd', 'clamav-milter'],
+      repo_package: 'epel-release',
       confdir: '/etc',
       milter_confdir: '/etc',
       user: 'clam',
       group: 'clam',
-      services: ['clamd', 'clamav-milter']
+      services: ['clamd', 'clamav-milter'],
     },
     CentOS7: {
       platform: 'centos',
-      version: '7.0',
-      packages: ['epel-release', 'clamav', 'clamav-server', 'clamav-update', 'clamav-milter', 'clamav-milter-systemd'],
+      version: '7.5.1804',
+      packages: ['clamav', 'clamav-server', 'clamav-update', 'clamav-milter-systemd', 'clamav-milter'],
+      repo_package: 'epel-release',
       confdir: '/etc/clamd.d',
       milter_confdir: '/etc/mail',
       user: nil,
       group: nil,
-      services: ['clamd', 'clamav-milter']
+      services: ['clamd@scan', 'clamav-milter'],
     }
   }.each do |k, v|
     context "On #{k} #{v[:version]}" do
@@ -115,12 +134,13 @@ describe 'milter-test::default' do
       let(:milter_confdir) { v[:milter_confdir] }
       let(:services) { v[:services] }
       let(:packages) { v[:packages] }
+      let(:repo_package) { v[:repo_package] }
       let(:user) { v[:user] }
       let(:group) { v[:group] }
 
       it_behaves_like 'any platform'
-      it_behaves_like 'platform with freshclam' if k == :Ubuntu
-      it_behaves_like 'platform with systemd' if k == :CentOS7
+      it_behaves_like 'normal platform' if k != :CentOS7
+      it_behaves_like 'centos7 platform' if k == :CentOS7
     end
   end
 end
